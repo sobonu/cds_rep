@@ -1,0 +1,207 @@
+
+[Show in New Window]
+
+Installing package into ‘/usr/local/lib/R/site-library’
+(as ‘lib’ is unspecified)
+trying URL 'https://p3m.dev/cran/__linux__/noble/latest/src/contrib/pacman_0.5.1.tar.gz'
+Content type 'binary/octet-stream' length 390891 bytes (381 KB)
+==================================================
+downloaded 381 KB
+
+* installing *binary* package ‘pacman’ ...
+* package ‘pacman’ successfully unpacked and SHA256 sums checked
+* DONE (pacman)
+
+The downloaded source packages are in
+	‘/tmp/Rtmpa9qob6/downloaded_packages’
+
+[Show in New Window]
+Description:df [6 × 5]
+ 
+ 
+	
+sr
+<dbl>
+	
+pop15
+<dbl>
+	
+pop75
+<dbl>
+	
+dpi
+<dbl>
+	
+ddpi
+<dbl>
+Australia	11.43	29.35	2.87	2329.68	2.87
+Austria	12.07	23.32	4.41	1507.99	3.93
+Belgium	13.17	23.80	4.43	2108.47	3.82
+Bolivia	5.75	41.89	1.67	189.13	0.22
+Brazil	12.88	42.19	0.83	728.47	4.56
+Canada	8.79	31.72	2.85	2982.88	2.43
+6 rows
+[Show in New Window]
+
+Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+ℹ Please use `linewidth` instead.
+This warning is displayed once per session.
+Call lifecycle::last_lifecycle_warnings() to see where this warning was generated.
+
+R Console
+[Show in New Window]
+[Show in New Window]
+
+
+	Shapiro-Wilk normality test
+
+data:  df_lcs$sr
+W = 0.98074, p-value = 0.5836
+
+
+	Shapiro-Wilk normality test
+
+data:  df_lcs$dpi
+W = 0.8618, p-value = 3.28e-05
+
+[Show in New Window]
+
+
+	Shapiro-Wilk normality test
+
+data:  df_lcs$log_dpi
+W = 0.95279, p-value = 0.04445
+
+
+	Shapiro-Wilk normality test
+
+data:  df_lcs$sqrt_dpi
+W = 0.92566, p-value = 0.003801
+
+R Console
+
+
+	Shapiro-Wilk normality test
+
+data:  df_lcs$log_dpi
+W = 0.95279, p-value = 0.04445
+
+
+	Shapiro-Wilk normality test
+
+data:  df_lcs$sqrt_dpi
+W = 0.92566, p-value = 0.003801
+
+[Show in New Window]
+
+                  sr      pop15      pop75        dpi        ddpi     log_dpi   sqrt_dpi
+Australia  0.3925983 -0.6271603  0.4470195  1.2341911 -0.30928223  1.17197877  1.2526731
+Austria    0.5354424 -1.2860523  1.6401045  0.4049291  0.06007239  0.74762813  0.6072788
+Belgium    0.7809559 -1.2336032  1.6555991  1.0109426  0.02174314  1.07464242  1.0919949
+Bolivia   -0.8751437  0.7430729 -0.4826571 -0.9260846 -1.23266881 -1.27786214 -1.1085250
+Brazil     0.7162296  0.7758535 -1.1334307 -0.3817744  0.27959449  0.03777768 -0.2029033
+Canada    -0.1966339 -0.3681928  0.4315249  1.8934105 -0.46259925  1.41311227  1.6870212
+
+[Show in New Window]
+
+
+	Pearson's product-moment correlation
+
+data:  df_lcs$sr and df_lcs$dpi
+t = 1.5652, df = 48, p-value = 0.1241
+alternative hypothesis: true correlation is not equal to 0
+95 percent confidence interval:
+ -0.06177804  0.46988555
+sample estimates:
+      cor 
+0.2203589 
+
+[Show in New Window]
+
+Warning in cor.test.default(df_lcs$sr, df_lcs$dpi, method = "spearman") :
+  cannot compute exact p-value with ties
+	Spearman's rank correlation rho
+
+data:  df_lcs$sr and df_lcs$dpi
+S = 14934, p-value = 0.04653
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+      rho 
+0.2828879 
+
+[Show in New Window]
+Description:df [6 × 8]
+ 
+ 
+	
+Population
+<dbl>
+	
+Income
+<dbl>
+	
+Illiteracy
+<dbl>
+	
+Life Exp
+<dbl>
+	
+Murder
+<dbl>
+	
+HS Grad
+<dbl>
+	
+Frost
+<dbl>
+	
+Area
+<dbl>
+Alabama	3615	3624	2.1	69.05	15.1	41.3	20	50708
+Alaska	365	6315	1.5	69.31	11.3	66.7	152	566432
+Arizona	2212	4530	1.8	70.55	7.8	58.1	15	113417
+Arkansas	2110	3378	1.9	70.66	10.1	39.9	65	51945
+California	21198	5114	1.1	71.71	10.3	62.6	20	156361
+Colorado	2541	4884	0.7	72.06	6.8	63.9	166	103766
+6 rows
+[Show in New Window]
+
+
+	Shapiro-Wilk normality test
+
+data:  df_states$Illiteracy
+W = 0.88315, p-value = 0.0001396
+
+
+	Shapiro-Wilk normality test
+
+data:  df_states$Murder
+W = 0.95347, p-value = 0.04745
+
+R Console
+
+
+	Shapiro-Wilk normality test
+
+data:  df_states$Illiteracy
+W = 0.88315, p-value = 0.0001396
+
+
+	Shapiro-Wilk normality test
+
+data:  df_states$Murder
+W = 0.95347, p-value = 0.04745
+
+[Show in New Window]
+
+Warning in cor.test.default(df_states$Illiteracy, df_states$Murder, method = "spearman") :
+  cannot compute exact p-value with ties
+	Spearman's rank correlation rho
+
+data:  df_states$Illiteracy and df_states$Murder
+S = 6823.1, p-value = 8.932e-08
+alternative hypothesis: true rho is not equal to 0
+sample estimates:
+      rho 
+0.6723592 
+
