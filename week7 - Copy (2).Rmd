@@ -1,0 +1,369 @@
+---
+title: "Week7"
+author: "Johanne S. Rejsenhus"
+date: "2025-10-13"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+*Good afternoon*  
+This week we will build on what you learned about correlation by extending the idea to build some regression models. Regression allows us to predict one variable from another and test how well our model fits the data.
+The goal of today’s markdown is to understand how to perform and interpret different types of linear regressions, check assumptions, and compare models.
+
+________________________________________________________________________________________
+
+**Structure of the markdown:**  
+Part 1:
+- Plot and visually explore relationships between variables  
+- Perform simple linear regression  
+- Interpret coefficients and model fit  
+- Extend regression with categorical predictors  
+- Include interaction terms  
+- Check assumptions of linear regression  
+- Visualize and interpret model results  
+- Compare models using ANOVA  
+
+Part 2:
+- Try it on your own
+
+Start with the first exercise, and then continue in order. Feel free to work together, and see how far you can get.   
+The important thing is to learn, not to necessarily do it all!
+________________________________________________________________________________________
+
+
+## Load the packages for today
+
+```{r, echo=FALSE}
+# Install pacman first (only once):
+##install.packages("pacman")
+
+# Load and install packages:
+pacman::p_load(ggplot2, dplyr, tidyr, broom, performance, see, performance, lmtest, car, nortest)
+```
+
+________________________________________________________________________________________
+
+
+# Part 1
+
+## Exploring and plotting variables
+
+We will use the dataset "state.x77" to investigate whether LIfe expectancy is dependen on income and maybe also where you are living. 
+
+```{r}
+df_states <- as.data.frame(state.x77)
+df_states$Region <- state.region
+head(df_states)
+```
+
+Now, let’s explore some of the variables visually.
+
+
+```{r}
+# Relationship between Income and life expecancy
+ggplot(df_states, aes(x = Income, y = `Life Exp`)) +
+  geom_point() +
+  theme_minimal() +
+  labs(title = "Relationship between Income and Life expectancy", x = "Income (per person in 1974)", y = "Life expectancy (in years)")
+```
+
+_Question:_ What kind of relationship do you see between Income and Life Expectancy?
+- The more income you have, the higher the your life expect will be.
+
+
+
+## Simple Linear Regression
+
+A **simple linear regression** examines the relationship between one predictor variable (X) and one outcome variable (Y).
+It fits a straight line to the data that best predicts Y from X, using the formula:
+
+$$ Y = b_0 + b_1X + \epsilon $$
+
+_Excercise:_ Add the definitions to the terms in the linear regression formula:
+
+- **Y** is the dependent outcome variable
+- **X** is the independent predictor variable
+- **b₀** is the y-intercept, where the regression line crosses the y-axis
+- **b₁** is the regression coefficient, slope of regression line
+- **ε** is remaining uexplained variance
+
+When we fit a linear model in R we use the function `lm()`. The syntax follows the formula notation: lm(outcome ~ predictor, data = dataset)
+
+This means “predict outcome from predictor using the data from dataset".
+Now, let’s try it out:
+
+
+```{r}
+model_income <- lm(`Life Exp` ~ Income, data = df_states_clean)
+summary(model_income)
+```
+
+_Excercise:_ Interpret the intercept and slope:  
+- What does the slope tell us about how Life Expectancy changes with Income?
+
+The slope is 7.433e-04 and significant, so for every unit of income the life expect rises significantly
+
+- What does the R^2 tell you about how much variance of Life expectancy that is explained by Income?
+
+adjusted r2 is 0.09735, so only 9% of total variance is explained by income
+
+- Is the relationship significant?
+
+yes, the p-value is below 0.05 and significant
+
+
+## Regression with Categorical Variables
+
+Maybe your life expectancy could also depend on whether you lived in a warmer and sunnier state or a colder an more northern state. We have a categorical variable called Region, which have 4 regions: South, West, Northeast and Nortcentral. Let’s add the region of the state as a categorical variable that might help us predict Life expectancy.
+
+```{r}
+model_income_region <- lm(`Life Exp` ~ Income + Region, data = df_states)
+summary(model_income_region)
+```
+
+_Excercise:_ Why is there only 3 regions here and not all 4?
+
+- Intercept is the first region for some reason.
+
+
+Also, Maybe you noticed that Income is no longer significant (p-value > 0.5).
+That is likely because Income and region is somewhat correlated meaning that when we add a correlated predictor (like region) it can “soak up” variance, making previously significant predictors non-significant. However, as the R-sqared (variance explained) is increasing a lot (from 0.09 to 0.34) we still have a model that explains more of the variance in Life expectancy. 
+
+_Excercise:_ Only one region is a significant predictor, what does it show about life expectancy in the southern states?
+
+- That income is not correlated with being from the South; i.e. the south is poorer = lower life expectancy
+
+
+
+
+
+## Regression with Interaction
+
+Maybe Income doesn't have the same effect on income in every state? We can investigate this by adding an interaction effect.
+This allows the effect of Income on life expectancy to differ by region. Without it, the model assumes Income has the same effect everywhere, but with the interaction, each region can have its own slope, capturing (possible) variation in how income impacts life expectancy.
+
+```{r}
+model_interaction <- lm(`Life Exp` ~ Income * Region, data = df_states)
+summary(model_interaction)
+
+# Plot the interaction
+ggplot(df_states, aes(x = Income, y = `Life Exp`, color = Region)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = FALSE) +
+  theme_minimal()
+```
+
+_Question:_ Does the effect of Income differ across regions? What explanations could there be for seeing different slopes in the four regions?
+
+- It differs across regions and can probably be explained. But the coefficients aren't significant
+
+
+
+
+
+
+## Checking Model Assumptions
+
+Last week we worked with correlations, which assume our variables are normally distributed. Regression, on the other hand, does not require the variables themselves to be normal, but instead relies on assumptions about the residuals, such as linearity, constant variance, normality, and absence of strong outliers.
+
+Remember, residuals are simply the differences between the observed values and the values predicted by your model.
+
+Regression assumptions:  
+1. Linearity  
+2. Homoscedasticity (constant variance)  
+3. Normality of residuals  
+4. No strong outliers  
+5. Multicolinearity (if we have multiple predictors)
+
+We can do all assumptions tesing by using the check_model() function from the `performance` package
+
+```{r}
+# 1. Linearity
+check_model(model_le_transformed, check = "linearity")
+
+# 2. Homoscedasticity (constant variance)
+check_model(model_le_transformed, check = "homogeneity")
+
+# 3. Normality of residuals
+check_model(model_le_transformed, check = "normality")
+
+# 4. Outliers / influential points
+check_model(model_le_transformed, check = "outliers")
+
+# 5. Multicolinearity 
+performance::check_collinearity(model_le_transformed)
+```
+
+_Excercise:_ Explain and explore each plot and consider: Are the assumptions met?
+
+- 1. The assumption isn't met since the line isn't flat and horizontal
+- 2. The variance of residuals is too scattered for the assumption to be met
+- 3. Normal distribution; assumption met
+- 4. There seems to be 1-2 outliers
+- 5. There is not enough predictors, only income
+
+We can also do numerical tests of our assumptions:
+
+```{r}
+
+# 1. Linearity (Ramsey RESET test)
+lmtest::resettest(model_income)
+
+# 2. Homoscedasticity (Breusch-Pagan test)
+
+lmtest::bptest(model_income)
+
+# 3. Normality of residuals (Shapiro-Wilk test)
+shapiro.test(residuals(model_income))
+
+# 4. Outliers
+car::outlierTest(model_income)
+
+# 5. Multicollinearity
+performance::check_collinearity(model_income)
+
+```
+*How to read the results*
+For the first three assumptions we have a violation if the p-value is below 0.05 as we reject the null-hypothesis (that there is no violation). 
+So high p-value (>0.05) = No violation 
+Low p-value (<0.05) = Violation
+
+The outlierTest always gives you the "outlier" also when not significant - so ALWAYS check the visual inspection before removing
+
+But never only do numerical tests, see them as a supplement to visually inspecting the data
+
+
+_Exercise_ Report the findings from the numerical tests, are they similar to what you described after visually inspecting the plots above?
+
+
+
+So, what can we do? 
+Let's remove the outlier from our data - the esiest would be to remove it here and then re-running the models on the now clean data
+```{r}
+# Which state is the outlier?
+## Alaska
+
+# Remove the observation (state)
+df_states_clean <- df_states[-2, ]
+
+# Go back up and refit the model with the clean data
+
+```
+
+Well not much have changed,
+Let's try some transformations. Use log() or sqrt() depending on what you believe is necessary. Transforming your variables will not always solve your problems, but should be the first step. Remember - when we work on our projects you will not have to know by heart what to do when at all times. Anna and I are here to help :)
+
+If you want to read more on transformations heres a good article: https://medium.com/@muhammadibrahim_54071/why-and-which-data-transformation-should-i-use-cfb9e31923cf
+
+```{r}
+# Transform the variables when running the model and check assumptions again
+
+model_le_transformed <- lm(log(`Life Exp`) ~ Income, data = df_states)
+
+```
+
+
+As the transformations didn't improve anything much, we will for teaching purposes just power through with the model_income But, If you stumble into such problems in your projects - find me and well problem solve further. :))
+
+
+## Comparing Models Using ANOVA
+
+```{r}
+anova(model_income, model_income_region, model_interaction)
+```
+
+**Question:**  
+- Does the more complex model significantly improve fit?  
+- Which model would you choose and why? hint: look at the p-value and residual sum of squares (annas lecture)
+
+
+
+## Visualising and Interpreting the Model
+
+You can visualize model predictions and fit.
+
+```{r}
+# Change your_chosen_model with the actual model name 
+ggplot(model_income, aes(x = Income, y = `Life Exp`, color = Region)) +
+  geom_point() +
+  geom_line(aes(y = predict(model_income)), size = 1) +
+  theme_minimal()
+
+summary(your_chosen_model)
+```
+
+**Interpretation:**  
+- Which predictors are significant?  
+- How much variance does the model explain (R²)?  
+- Are the model’s residuals well-behaved?
+
+
+
+
+*OBS* As you now should know - models are not always significant and well behaving even if we wish them to be. So when doing you exams, It will be absolutely okay to conclude that you simply did not find significant results for your research question. 
+
+________________________________________________________________________________________
+
+# Part 2:
+## Now we try and use our new knowledge for a mini-project.  
+For this, I have made a checklist you can run through.
+
+### Step 1: Understand Your Data
+- [ ] Load the dataset into R  
+- [ ] Identify your outcome (dependent variable) and predictor(s) (independent variables)  
+- [ ] Determine whether predictors are continuous or categorical  
+
+### Step 2: Explore Relationships
+- [ ] Plot scatterplots between your predictors and outcome  
+- [ ] Try different plots for categorical variables (boxplots, violin plots, etc.)  
+- [ ] Look for linear trends or group differences visually  
+
+### Step 3: Fit a Simple Regression
+- [ ] Run a simple linear regression using `lm(outcome ~ predictor, data = yourdata)` - remember: outcome needs to be continuous
+- [ ] Inspect the model summary and note the intercept, slope, and R²  
+- [ ] Interpret whether the relationship is significant and meaningful  
+
+### Step 4: If it fits with your RQ
+- [ ] Add another (categorical) predictor to create a multiple regression model  
+- [ ] Add an interaction term if you expect the effect of one variable to depend on another  
+- [ ] Interpret how the model changes compared to the simple regression  
+
+### Step 5: Check Model Assumptions
+- [ ] Plot residuals to check for linearity and homoscedasticity  
+- [ ] Inspect Q-Q plot for normality of residuals  
+- [ ] Identify potential outliers or influential cases  
+
+### Step 6: Visualise and Interpret
+- [ ] Visualise the fitted regression line(s)  
+- [ ] Compare how predictions differ by group or interaction  
+- [ ] Interpret the meaning of the coefficients in context  
+
+### Step 7: Compare Models
+- [ ] Use `anova(model1, model2, model3)` to compare models  
+- [ ] Identify which model provides the best fit (highest R², or significant ANOVA result)  
+- [ ] Explain why you would choose that model for interpretation  
+
+### Step 8: Report and Reflect
+- [ ] Summarize your findings clearly  
+- [ ] Include coefficients, p-values, R², and model comparison results  
+- [ ] Discuss what the results tell you about the data and research question  
+
+________________________________________________________________________________________
+
+```{r}
+# Have a look at all the data already available in r and choose a dataset for your mini-project
+data()
+
+
+```
+
+
+
+
+
+
+*Great work today!*  
+Feel free to experiment with your own dataset and see how regression can help you understand relationships and predictions.
