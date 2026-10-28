@@ -1,0 +1,160 @@
+---
+title: "assignment2"
+author: "Sebastian Batchford"
+date: "2026-10-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Loading the packages we need
+
+```{r packages}
+
+install.packages("dslabs")
+library("dslabs")
+
+# Install pacman first (only once):
+install.packages("pacman")
+
+# Load and install packages:
+pacman::p_load(ggplot2, dplyr, tidyr) #So it installs the library if needed + imports it in one step.
+```
+
+# Part 1:
+Use the ‘divorce_margarine’ dataset from the ‘dslabs’ package to explore the relationship
+between margarine consumption and divorce rates in Maine. Visualise the data, make a
+correlation test. Report the correlation coefficient and p-value in APA format, and briefly
+discuss the results in a practical way
+
+### Loading and looking at the 'divorce_margarine' dataset
+```{r loading_dataframe}
+
+df_divorce_marg <- as.data.frame(divorce_margarine)
+head(df_divorce_marg)
+
+# Looking at divorce rate over time
+ggplot(df_divorce_marg,aes(x=year, y=divorce_rate_maine)) +
+  geom_line(color = "blue") +
+  labs(title = "Divorce rate in Maine", x = "Year", y = "Divorce rate")
+
+# Looking at margarine consumption over time
+ggplot(df_divorce_marg,aes(x=year, y=margarine_consumption_per_capita)) +
+  geom_line(color = "green") +
+  labs(title = "Margarine consumption", x = "Year", y = "Margarine consumption per capita")
+
+
+
+```
+
+They looked like they may correlate...
+
+### Histograms
+```{r histograms}
+
+ggplot(df_divorce_marg, aes(x=divorce_rate_maine)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 10, fill = "blue", color = "black") +
+  geom_density(color = "red", size = 1) +
+  labs(title = "Distribution of Divorce rate in Maine", x = "Divorce rate", y = "Density")
+
+
+ggplot(df_divorce_marg, aes(x=margarine_consumption_per_capita)) +
+  geom_histogram(aes(y = after_stat(density)), bins = 10, fill = "green", color = "black") +
+  geom_density(color = "red", size = 1) +
+  labs(title = "Distribution of Margarine consumption per capita", x = "Margarine consumption per capita", y = "Density")
+
+
+```
+```{r density_plots}
+
+ggplot(df_divorce_marg, aes(x=divorce_rate_maine)) +
+  geom_density(fill="blue", color = "red", alpha = 0.8) +
+  labs(title = "Distribution of Divorce rate in Maine", x = "Divorce rate", y = "Density")
+
+
+ggplot(df_divorce_marg, aes(x=margarine_consumption_per_capita)) +
+  geom_density(fill="green", color = "red", alpha = 0.8) +
+  labs(title = "Distribution of Margarine consumption per capita", x = "Margarine consumption per capita", y = "Density")
+
+```
+
+None of the variables seem to have a normal distribution.
+
+### QQ-plots
+```{r qqplots}
+
+ggplot(df_divorce_marg, aes(sample = divorce_rate_maine)) + #For qq-plots we specify a 'sample' instead of an x or y axis
+  stat_qq(color = "blue") + # Colours 
+  stat_qq_line(color = "red") +
+  labs(title = "Q-Q Plot: Divorce rate in Maine")
+
+ggplot(df_divorce_marg, aes(sample = margarine_consumption_per_capita)) + #For qq-plots we specify a 'sample' instead of an x or y axis
+  stat_qq(color = "green") + # Colours 
+  stat_qq_line(color = "red") +
+  labs(title = "Q-Q Plot: Margarine consumption per capita")
+
+
+```
+Both variables deviate from the reference line somewhat; It is probably not normally distributed.
+
+### Shapiro-wilk test
+
+```{r shapiro}
+shapiro.test(df_divorce_marg$divorce_rate_maine)
+shapiro.test(df_divorce_marg$margarine_consumption_per_capita)
+
+```
+
+"How to interpret the results:
+Look at the p-value:
+- p > 0.05 → Fail to reject H₀ → Data can be treated as approximately normal.
+- p ≤ 0.05 → Reject H₀ → Consider non-parametric methods or transformations.
+
+W statistic:
+- W ranges from 0 to 1.
+- Values closer to 1 indicate data closer to normal."
+
+Both p-values are above 0.05 so the data is probably normal. Both W values are close to 1, also a sign of normality.
+This is surprising since the plots didn't look normally distributed.
+
+### Correlation test
+```{r pearson}
+# I've decided to use the Pearson correlation test, assuming the data is normal 
+
+cor.test(df_divorce_marg$divorce_rate_maine, df_divorce_marg$margarine_consumption_per_capita, method = "pearson")
+
+
+```
+
+### Report
+A Pearson correlation coefficient was computed to assess the linear relationship between the divorce rate in Maine and per capita margarine consumption.
+There was a strong positive correlation between the two variables, r (8) = .99, p < .001
+
+However, this doesn't make sense since the values obviously aren't related in real life. The correlation doesn't tell us anything about causation.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
