@@ -17,7 +17,7 @@ install.packages("dslabs")
 library("dslabs")
 
 # Install pacman first (only once):
-##install.packages("pacman")
+install.packages("pacman")
 
 # Load and install packages:
 pacman::p_load(ggplot2, dplyr, tidyr) #So it installs the library if needed + imports it in one step.
@@ -102,6 +102,7 @@ ggplot(df_divorce_marg, aes(sample = margarine_consumption_per_capita)) + #For q
 
 
 ```
+
 Both variables deviate from the reference line somewhat; It is probably not normally distributed.
 
 ### Shapiro-wilk test
@@ -135,7 +136,7 @@ cor.test(df_divorce_marg$divorce_rate_maine, df_divorce_marg$margarine_consumpti
 
 ### Part 1 Report
 A Pearson correlation coefficient was computed to assess the linear relationship between the divorce rate in Maine and per capita margarine consumption.
-There was a strong positive correlation between the two variables, r (8) = .99, p < .001
+There was a strong positive correlation between the two variables, r (8) = .99, p < .05
 
 However, this doesn't make sense since the values obviously aren't related in real life. The correlation doesn't tell us anything about causation.
 
@@ -173,9 +174,10 @@ ggplot(df_vocab, aes(x = educ, y = vocab)) +
   labs(title = "Relationship between vocabulary test scores and education", x = "Education", y = "Vocabulary Test Scores")
 
 ```
+
 It looks like the vocab scores rise with a person's level of education. This will be investigated further...
 
-## Regression model: vocab, educ
+## Regression model 1: vocab, educ
 ```{r}
 
 model_vocab <- lm(vocab ~ educ, data = df_vocab)
@@ -184,18 +186,17 @@ summary(model_vocab)
 ```
 ### Results and Interpretation
 
-Education predicted vocabulary test scores, R2 = .29, F(1, 1475) = 597.5, p < .002
+Education predicted vocabulary test scores, R2 = .29, F(1, 1475) = 597.5, p < .05
 
 The results tell us that the education can significantly predict the vocab test scores. This makes sense since you'll generally do better in tests if you're better educated or more well-read.
 
 
-## Regression model 1: vocab, educ, native-born
+## Regression model 2: vocab, educ, native-born
 ```{r}
 
 model_vocab_native <- lm(vocab ~ educ + nativeBorn, data = df_vocab)
 summary(model_vocab_native)
 
-# Plot the interaction
 ggplot(model_vocab_native, aes(x = educ, y = vocab, color = nativeBorn)) +
   geom_point() +
   geom_smooth(method = "lm", se = FALSE)
@@ -205,12 +206,12 @@ ggplot(model_vocab_native, aes(x = educ, y = vocab, color = nativeBorn)) +
 
 ### Results
 
-Native-born status significantly predicted vocabulary test scores, R2 = .29, F(2, 1474) = 305.60, p = .002
+Native-born status significantly predicted vocabulary test scores, R2 = .29, F(2, 1474) = 305.60, p < .05
 
 This would mean that native-born people generally have higher vocab test scores. 
 
 
-## Regression model 2: vocab, educ, native-born with interaction 
+## Regression model 3: vocab, educ, native-born with interaction 
 ```{r}
 
 model_vocab_native_2 <- lm(vocab ~ educ * nativeBorn, data = df_vocab)
@@ -219,15 +220,17 @@ summary(model_vocab_native_2)
 ```
 ### Results
 
-The education * native-born interaction was not significant, R2 = .29, F(3, 1473), p = .663 (overall model: p < .002)
+The education * native-born interaction was not significant, R2 = .29, F(3, 1473), p = .663 (overall model: p < .05)
 
-This means that there's no evidence that native-born status has an effect on the relationship between education and vocab stores.
+This means that there's no evidence that native-born status has an effect on the relationship between education and vocab scores.
 
 
 ## Final results and model comparison
 
-Model 1 is the better fit since it shows us significant predictors unlike Model 2. Asjusted R^2 is about the same, .29, in both models
+Model 3 is the better fit since it shows us significant predictors unlike Model 3. Adjusted R^2 is about the same, .29, in both models
+
 - p-values in Model 1: nativeBornyes 0.00159
+
 - p-values in Model 2: nativeBornyes 0.186, educ:nativeBornyes 0.663
 
 Education seems to strongly predict vocab test scores. Native-born people also seem to do better in vocab tests, probably because they're fluent in the language vocabulary being tested.
